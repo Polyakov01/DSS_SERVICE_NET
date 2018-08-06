@@ -17,22 +17,58 @@ using System.IO;
 using System.Text;
 using System.Net.Http.Headers;
 using Newtonsoft.Json;
+using MvcApplication1.classes.Custom;
 
 namespace MvcApplication1.Controllers
 {
     public class ApiRequestController : DSSApiController
     {
-        
-        public object Get()
-        {            
-            String address = getPostParams("address");
-            String username = getPostParams("username");
-            String token = getPostParams("token");
-            String test = getPostParams("items_per_page");
+
+        public object POST()
+        {
+
+            String inputJSON = "";
+            using (var streamReader = new StreamReader(HttpContext.Current.Request.InputStream))
+            {
+                inputJSON = streamReader.ReadToEnd();
+            }
+            PostParametrs inputParams  = JsonConvert.DeserializeObject<PostParametrs>(inputJSON);
+
             try
             {
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                HttpWebRequest httpWebRequest = HttpWebRequest.CreateHttp(address.Remove(0,1).Remove(address.Length-2,1));
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11;
+                HttpWebRequest httpWebRequest = HttpWebRequest.CreateHttp(inputParams.address);
+                String encoded = System.Convert.ToBase64String(System.Text.Encoding.GetEncoding("ISO-8859-1").GetBytes(inputParams.login + ":" + inputParams.password));
+               // httpWebRequest.Method = "Get";
+                httpWebRequest.Headers.Add("Authorization: Basic " + encoded);
+                WebResponse myWebResponse = httpWebRequest.GetResponse();
+                Stream responseStream = myWebResponse.GetResponseStream();
+                StreamReader myStreamReader = new StreamReader(responseStream, Encoding.Default);
+                string pageContent = myStreamReader.ReadToEnd();
+                responseStream.Close();
+                myWebResponse.Close();
+                return JsonConvert.DeserializeObject<object>(pageContent);
+            }
+            catch (Exception ex)
+            {
+                return new DSS_RESPONSE_ERROR(ex.Message);
+            }
+
+          //  return inputParams;
+        }
+
+            public object Get()
+        {            
+            //String address = getPostParams("address");
+            String username = getPostParams("username");
+            String token = getPostParams("token");
+            String page = getPostParams("page");
+            //String test = getPostParams("items_per_page");
+            try
+            {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11;
+                // HttpWebRequest httpWebRequest = HttpWebRequest.CreateHttp("https://preprod.iqos.kz/api/users?items_per_page=500&page=" + page /*address.Remove(0,1).Remove(address.Length-2,1)*/);
+                HttpWebRequest httpWebRequest = HttpWebRequest.CreateHttp("https://preprod.iqos.kz/api/users?items_per_page=0" /*address.Remove(0,1).Remove(address.Length-2,1)*/);
                 String encoded = System.Convert.ToBase64String(System.Text.Encoding.GetEncoding("ISO-8859-1").GetBytes(username + ":" + token));
                 httpWebRequest.Headers.Add("Authorization: Basic " + encoded);
                 WebResponse myWebResponse = httpWebRequest.GetResponse();
@@ -71,9 +107,7 @@ namespace MvcApplication1.Controllers
              else
              {
                  Dictionary<string, object> items = JsonConvert.DeserializeObject<Dictionary<string, object>>(values["params"].ToString());
-             }*/
-
-                                                                 
+             }*/                                                                 
         }
     }
 }

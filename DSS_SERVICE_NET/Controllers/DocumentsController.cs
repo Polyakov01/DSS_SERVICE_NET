@@ -6,12 +6,12 @@ using System.IO;
 using Newtonsoft.Json;
 using System.Threading;
 using System.Web;
+using MvcApplication1.classes.entity;
 
 namespace MvcApplication1.Controllers
 {
-    public class ApiPOSTRequestController : DSSApiController
+    public class DocumentsController : DSSApiController
     {
-
         public object Get()
         {
             /*
@@ -81,70 +81,32 @@ namespace MvcApplication1.Controllers
         ////////////////
         public object POST()
         {
-
             String inputJSON = "";
             using (var streamReader = new StreamReader(HttpContext.Current.Request.InputStream))
             {
                 inputJSON = streamReader.ReadToEnd();
             }
+            
+            DocumentsPack1C customers = JsonConvert.DeserializeObject<DocumentsPack1C>(inputJSON);
 
-            String username = getPostParams("username");
-            String token = getPostParams("token");
-            String operation = getPostParams("operation");
-            String preprod = getPostParams("preprod");     
-            if (preprod == null)
-            {
-                preprod = "";
-            }
-            try
-            {
-                // http://localhost:57484/api/ApiPOSTRequest?username=leadgen@iqos.kz&token=NX25d03Y2Azw25i37kW421EiE6UjCe45&operation=users&preprod=ok
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                HttpWebRequest httpWebRequest = null;
-                if (preprod.Equals("ok") || preprod == null)
-                {
-                    httpWebRequest = HttpWebRequest.CreateHttp("https://preprod.iqos.kz/api/" + operation);
-                }
-                else
-                {
-                    httpWebRequest = HttpWebRequest.CreateHttp("https://www.iqos.kz/api/" + operation);
-                }
-                        httpWebRequest.Method = "POST";
-                        httpWebRequest.ContentType = "application/json";
-                        String encoded = System.Convert.ToBase64String(System.Text.Encoding.GetEncoding("ISO-8859-1").GetBytes(username + ":" + token));
-                        httpWebRequest.Headers.Add("Authorization: Basic " + encoded);
-                        using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
-                        {
-                            streamWriter.Write(inputJSON);
-                            streamWriter.Flush();
-                            streamWriter.Close();
-                        }
-                        var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-                        using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
-                        {
-                            var result = streamReader.ReadToEnd();
-                            Dictionary<object, object> res = new Dictionary<object, object>();
-                            res.Add("response", JsonConvert.DeserializeObject<object>(result));
-                            res.Add("request", JsonConvert.DeserializeObject<object>(inputJSON));
-                            return res;
-                }
-                    }
-                    catch (WebException ex)
-                    {
-                        using (var streamReader = new StreamReader(ex.Response.GetResponseStream()))
-                        {
-                            var result = streamReader.ReadToEnd();
-                            Dictionary<object, object> res = new Dictionary<object, object>();
-                            res.Add("response", JsonConvert.DeserializeObject<object>(result));
-                            res.Add("request", JsonConvert.DeserializeObject<object>(inputJSON));
-                            return res;
-                        }
-                    }
+           // foreach(Customer1C customer:customers.consumers)
+           // {
+                
+           // }
+
+
+            // customers.consumers.
+            /* new DBOperationscustomers().doQueryJSON(
+                                 insertPrepare(
+                                 getPostParams("fields"),
+                                 getPostParams("values"),
+                                 getPostParams("table"),
+                                 getPostParams("where"),
+                                 getPostParams("token"))
+                             ));
+                             */
+
+            return customers;
         }
-
-
-
-
-
     }
 }
